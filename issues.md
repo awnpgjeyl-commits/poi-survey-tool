@@ -51,11 +51,9 @@
 1. **第 18-21 行**：添加「等待机制」
    - 原代码：如果 `AMap` 未定义，直接报错并退出
    - 修复后：如果 `AMap` 未定义，输出等待日志，每 100ms 重试一次
-
 2. **第 34 行**：调整插件初始化时机
    - 原代码：在 `map.on('complete')` 外部调用 `this.initPlugins()`
    - 修复后：在 `map.on('complete')` 回调内部调用 `this.initPlugins()`，确保地图完全加载后才初始化插件
-
 3. **第 54 行**：添加日志
    - 新增日志输出，确认插件初始化完成
 
@@ -63,7 +61,66 @@
 
 ***
 
-## Issue #2：POI 查询面板交互优化（Feature）
+## Issue #2：配置两个不同的 API Key（Config）
+
+**TL;DR**：当前使用同一个 Key 负责地图展示和搜索调用，但高德地图要求分别使用「Web JS API Key」和「Web 服务 Key」。
+
+### 类型 / 优先级
+
+- **Type**：Config
+- **Priority**：Critical
+- **Effort**：Low
+
+### 当前状态 vs 预期结果
+
+**当前状态**：
+
+- 地图显示正常（使用 Web JS API Key）
+- 搜索功能报错 `USERKEY_PLAT_NOMATCH`（无法使用同一个 Key 调用 Web 服务 API）
+
+**预期结果**：
+
+- 地图展示使用「Web JS API」Key-浏览器（前端），用户使用，在网页上**显示地图**
+- 搜索功能使用「Web 服务」Key-服务器（后端），服务器程序使用，在后台查询数据
+- 两个 Key 互不干扰，各自负责对应功能
+
+### 用户场景
+
+用户点击「开始搜索」后，系统调用高德周边搜索 API，但当前 Key 类型不支持，导致搜索失败。
+
+### 相关文件
+
+- `js/config.js`（需要新增 Web 服务 Key 配置）
+- `js/search-manager.js`（需要改用 Web 服务 Key）
+- `index.html`（地图展示继续使用 JS API Key）
+
+### 解决方案
+
+**方案：创建独立的 Web 服务 Key**
+
+1. 登录高德开放平台
+2. 创建新 Key，类型选择「Web 服务」
+3. 在 `config.js` 中新增 `AMAP_WEB_SERVICE_KEY` 配置项
+4. `search-manager.js` 使用新 Key 调用 API
+5. `index.html` 和 `map-manager.js` 继续使用原有 JS API Key
+
+### 风险
+
+- **Critical**：阻塞核心功能（搜索）
+- 低实施风险：只需在代码中新增一个配置项
+
+### 依赖条件
+
+- 需要用户提供新的 Web 服务 Key
+
+### 待用户确认
+
+1. 是否已创建 Web 服务 Key？
+2. 新 Key 是否已配置白名单/安全域名？
+
+***
+
+## Issue #3：POI 查询面板交互优化（Feature）
 
 **TL;DR**：用户希望在 POI 编码输入框输入时，能自动弹出匹配的 POI 编码建议供选择。
 
@@ -104,7 +161,7 @@
 
 ***
 
-## Issue #3：右侧栏文字溢出（Bug）
+## Issue #4：右侧栏文字溢出（Bug）
 
 **TL;DR**：右侧面板的输入/点击框内文字超出边框范围。
 
@@ -134,7 +191,8 @@
 
 ## Issue 处理优先级
 
-1. **Issue #1（Critical）**：优先修复地图加载问题
-2. **Issue #2（Medium）**：后续实现 POI 自动补全功能
-3. **Issue #3（Low）**：UI 样式调整
+1. **~~Issue #1（Critical）~~**~~：~~ ✅ 已修复 - 地图加载问题
+2. **Issue #2（Critical）**：需要创建 Web 服务 Key 并配置代码
+3. **Issue #3（Medium）**：POI 自动补全功能
+4. **Issue #4（Low）**：右侧栏文字溢出
 

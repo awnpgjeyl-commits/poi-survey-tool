@@ -72,14 +72,13 @@ class SearchManager {
 
     async fetchPage(location, radius, poiTypes, pageNum) {
         const params = {
-            key: AMAP_KEY,
+            key: AMAP_WEB_SERVICE_KEY,
             location: location,
             radius: radius,
             types: poiTypes,
             pagesize: this.config.APP.PAGE_SIZE,
             pagenum: pageNum,
-            extensions: 'all',
-            securityCode: SECURITY_CODE
+            extensions: 'all'
         };
 
         try {
