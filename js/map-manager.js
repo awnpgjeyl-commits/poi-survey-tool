@@ -17,7 +17,8 @@ class MapManager {
 
     init() {
         if (typeof AMap === 'undefined') {
-            console.error('高德地图 API 未加载');
+            console.log('高德地图 API 加载中，等待...');
+            setTimeout(() => this.init(), 100);
             return;
         }
 
@@ -32,9 +33,9 @@ class MapManager {
 
         this.map.on('complete', () => {
             console.log('地图加载完成');
+            this.initPlugins();
         });
 
-        this.initPlugins();
         this.bindEvents();
     }
 
@@ -52,6 +53,8 @@ class MapManager {
                 city: '全国',
                 radius: 1000
             });
+
+            console.log('PlaceSearch 和 Geocoder 插件初始化完成');
         });
     }
 
