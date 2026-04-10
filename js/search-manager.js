@@ -20,13 +20,15 @@ class SearchManager {
         this.loading = true;
         this.results = [];
 
-        const poiTypes = buildPOITypesString(selectedCategories, customPoiCodes);
-        if (!poiTypes) {
+        // 百度地图使用分类名称
+        const poiTypes = selectedCategories.length > 0 ? selectedCategories : customPoiCodes.split(',').map(s => s.trim());
+        
+        if (!poiTypes || poiTypes.length === 0) {
             throw new Error('无效的 POI 类型');
         }
 
         const radiusMeters = radius * 1000;
-        const location = `${center.getLng()},${center.getLat()}`;
+        const location = center;
 
         try {
             const allResults = await this.fetchAllPages(location, radiusMeters, poiTypes);
@@ -47,23 +49,23 @@ class SearchManager {
 
     async fetchAllPages(location, radius, poiTypes) {
         const allPOIs = [];
-        let page = 1;
-        let hasMore = true;
+        let pageNum = 1;
         const maxPages = Math.ceil(this.config.APP.MAX_RESULTS / this.config.APP.PAGE_SIZE);
 
-        while (hasMore && page <= maxPages) {
-            const pageResults = await this.fetchPage(location, radius, poiTypes, page);
+        // 百度地图 API 每次返回固定数量，需要分页获取
+        while (pageNum <= maxPages) {
+            const pageResults = await this.fetchPage(location, radius, poiTypes, pageNum);
 
             if (pageResults && pageResults.length > 0) {
                 allPOIs.push(...pageResults);
 
                 if (pageResults.length < this.config.APP.PAGE_SIZE) {
-                    hasMore = false;
+                    break;
                 } else {
-                    page++;
+                    pageNum++;
                 }
             } else {
-                hasMore = false;
+                break;
             }
         }
 
@@ -71,127 +73,94 @@ class SearchManager {
     }
 
     async fetchPage(location, radius, poiTypes, pageNum) {
+        // 百度地图周边搜索 API
+        const url = 'https://api.map.baidu.com/place/v2/search';
+        
+        // 合并所有 POI 类型，用 '|' 连接
+        const typesString = poiTypes.join('|');
+
         const params = {
-            key: AMAP_WEB_SERVICE_KEY,
-            location: location,
+            query: typesString,
+            scope: 2,
+            page_size: this.config.APP.PAGE_SIZE,
+            page_num: pageNum - 1,
+            location: `${location.lat},${location.lng}`,
             radius: radius,
-            types: poiTypes,
-            pagesize: this.config.APP.PAGE_SIZE,
-            pagenum: pageNum,
-            extensions: 'all'
+            ak: this.config.BAIDU_AK || 'Sr3FSlQEfJVlMl6zupdMRCvXmFGc9xR2',
+            output: 'json'
         };
 
         try {
-            const response = await axios.get(AMAP_API_ENDPOINTS.AROUND_SEARCH, {
+            const response = await axios.get(url, {
                 params: params,
                 timeout: this.config.APP.REQUEST_TIMEOUT
             });
 
-            if (response.data && response.data.status === '1') {
-                if (response.data.pois && response.data.pois.length > 0) {
-                    return response.data.pois;
+            if (response.data && response.data.status === 0) {
+                if (response.data.results && response.data.results.length > 0) {
+                    return response.data.results.map(poi => ({
+                        name: poi.name,
+                        location: new BMap.Point(poi.location.lng, poi.location.lat),
+                        address: poi.address,
+                        category: poi.detail_info?.type || poi.type || '',
+                        distance: poi.distance || 0,
+                        telephone: poi.telephone || '',
+                        uid: poi.uid
+                    }));
                 }
                 return [];
             } else {
-                const errorMsg = response.data?.info || 'API 返回错误';
+                const errorMsg = response.data?.message || 'API 返回错误';
                 throw new Error(errorMsg);
             }
         } catch (error) {
-            if (error.response?.data?.info) {
-                throw new Error(error.response.data.info);
+            if (error.response?.data?.message) {
+                throw new Error(error.response.data.message);
             }
             throw error;
         }
     }
 
     processResults(pois) {
-        const deduplicated = deduplicatePOIs(pois);
+        if (!pois || pois.length === 0) {
+            return [];
+        }
 
-        return deduplicated.map(poi => {
-            const location = this.parseLocation(poi.location);
-            const category = getCategoryByPOICode(poi.type);
+        const uniquePOIs = [];
+        const seenNames = new Set();
 
-            return {
-                id: poi.id,
-                name: poi.name,
-                type: poi.type,
-                typecode: poi.typecode,
-                category: category,
-                address: poi.address || '',
-                location: location,
-                distance: parseFloat(poi.distance) || 0,
-                cityname: poi.cityname || '',
-                adname: poi.adname || '',
-                pname: poi.pname || ''
-            };
+        pois.forEach(poi => {
+            const key = `${poi.name}_${poi.address}`;
+            if (!seenNames.has(key)) {
+                seenNames.add(key);
+                uniquePOIs.push(poi);
+            }
         });
-    }
 
-    parseLocation(locationStr) {
-        if (!locationStr) {
-            return { lng: 0, lat: 0 };
-        }
-
-        const parts = locationStr.split(',');
-        if (parts.length === 2) {
-            return {
-                lng: parseFloat(parts[0]),
-                lat: parseFloat(parts[1])
-            };
-        }
-
-        return { lng: 0, lat: 0 };
-    }
-
-    getResults(page = 1, itemsPerPage = null) {
-        const perPage = itemsPerPage || CONFIG.UI.RESULTS_PER_PAGE;
-        const startIndex = (page - 1) * perPage;
-        const endIndex = startIndex + perPage;
-
-        return {
-            items: this.results.slice(startIndex, endIndex),
-            total: this.results.length,
-            page: page,
-            totalPages: Math.ceil(this.results.length / perPage),
-            hasNextPage: endIndex < this.results.length,
-            hasPrevPage: page > 1
-        };
-    }
-
-    filterByCategory(category) {
-        if (!category) {
-            return this.results;
-        }
-        return this.results.filter(poi => poi.category === category);
+        return uniquePOIs.map((poi, index) => ({
+            id: index + 1,
+            name: poi.name,
+            category: poi.category,
+            address: poi.address,
+            distance: (poi.distance / 1000).toFixed(2),
+            location: poi.location,
+            telephone: poi.telephone,
+            uid: poi.uid
+        }));
     }
 
     getCategoryStats() {
         const stats = {};
+
         this.results.forEach(poi => {
-            const category = poi.category;
+            const category = poi.category || '未知';
             if (!stats[category]) {
-                stats[category] = {
-                    count: 0,
-                    items: []
-                };
+                stats[category] = 0;
             }
-            stats[category].count++;
-            stats[category].items.push(poi);
+            stats[category]++;
         });
+
         return stats;
-    }
-
-    getTotalCount() {
-        return this.totalCount;
-    }
-
-    clearResults() {
-        this.results = [];
-        this.totalCount = 0;
-    }
-
-    isLoading() {
-        return this.loading;
     }
 }
 

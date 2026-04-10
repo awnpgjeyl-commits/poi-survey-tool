@@ -21,35 +21,27 @@ function throttle(func, limit) {
     };
 }
 
+function sortPOIsByDistance(pois, ascending = true) {
+    if (!pois || pois.length === 0) return pois;
+    
+    return pois.sort((a, b) => {
+        const distA = parseFloat(a.distance) || 0;
+        const distB = parseFloat(b.distance) || 0;
+        return ascending ? distA - distB : distB - distA;
+    });
+}
+
 function parseCustomPOICodes(input) {
     if (!input || typeof input !== 'string') {
         return [];
     }
 
-    const codes = [];
-    const parts = input.split(/[,|]/);
+    // 百度地图模式：直接返回分类名称数组
+    const categories = input.split(',').map(s => s.trim()).filter(s => s);
+    return categories;
+}
 
-    parts.forEach(part => {
-        part = part.trim();
-        if (!part) return;
 
-        if (part.includes('-')) {
-            const rangeParts = part.split('-');
-            if (rangeParts.length === 2) {
-                const start = parseInt(rangeParts[0], 10);
-                const end = parseInt(rangeParts[1], 10);
-                if (!isNaN(start) && !isNaN(end) && start <= end) {
-                    for (let i = start; i <= end; i++) {
-                        codes.push(String(i).padStart(6, '0'));
-                    }
-                }
-            }
-        } else if (/^\d+$/.test(part)) {
-            codes.push(part.padStart(6, '0'));
-        }
-    });
-
-    return [...new Set(codes)];
 }
 
 function getCategoryByPOICode(code) {

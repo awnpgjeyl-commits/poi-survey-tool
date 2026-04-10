@@ -112,7 +112,7 @@ class POISurveyApp {
         const customPoiCodes = this.uiManager.getCustomPOICodes();
 
         if ((!selectedCategories || selectedCategories.length === 0) && !customPoiCodes) {
-            showToast('请至少选择一个业态分类或输入自定义POI编码', 'error');
+            showToast('请至少选择一个业态分类', 'error');
             return;
         }
 
@@ -136,8 +136,7 @@ class POISurveyApp {
             this.uiManager.updateResults(results, 1);
             this.uiManager.enableExport(true);
 
-            const stats = this.searchManager.getCategoryStats();
-            console.log('搜索完成，分类统计:', stats);
+            console.log('搜索完成，结果数量:', results.length);
 
             showToast(`搜索完成，共找到 ${results.length} 个结果`, 'success');
 

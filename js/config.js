@@ -1,7 +1,5 @@
 const CONFIG = {
-    AMAP_KEY: '8d2ec8f6481066c9caca19e60a91b616',
-    AMAP_WEB_SERVICE_KEY: 'f7350cc1851c2cfaf6ced3375537dba4',
-    SECURITY_CODE: 'e1bd931b49ec6dbb047b6ad21d30296a',
+    BAIDU_AK: 'Sr3FSlQEfJVlMl6zupdMRCvXmFGc9xR2',
 
     DEFAULT_RADIUS: 5,
     MAX_RADIUS: 10,
@@ -11,14 +9,21 @@ const CONFIG = {
     MIN_ZOOM: 3,
     MAX_ZOOM: 18,
 
-    POI_CATEGORIES: {
-        '写字楼': ['120201'],
-        '产业园': ['120100'],
-        '商业综合体': ['200100', '200101', '200102'],
-        '酒店': ['100100', '100101', '100102', '100103', '100104', '100105'],
-        '教育机构': ['141201', '141202', '141203', '141204'],
-        '医疗设施': ['170000'],
-        '餐饮娱乐': ['200200', '200201', '200202', '200203']
+    BAIDU_POI_CATEGORIES: {
+        '美食': ['中餐厅', '外国餐厅', '小吃快餐店', '蛋糕甜品店', '咖啡厅', '茶座', '酒吧'],
+        '酒店': ['星级酒店', '快捷酒店', '公寓式酒店', '民宿'],
+        '购物': ['购物中心', '百货商场', '超市', '便利店', '商铺', '市场'],
+        '生活服务': ['通讯营业厅', '邮局', '物流公司', '房产中介', '维修点', '家政服务'],
+        '医疗': ['综合医院', '专科医院', '诊所', '药店', '体检机构'],
+        '教育培训': ['高等院校', '中学', '小学', '幼儿园', '培训机构'],
+        '公司企业': ['公司', '园区', '写字楼'],
+        '交通设施': ['机场', '火车站', '地铁站', '停车场', '加油站'],
+        '金融': ['银行', 'ATM', '信用社', '投资理财'],
+        '房地产': ['写字楼', '住宅区', '宿舍'],
+        '政府机构': ['中央机构', '各级政府', '行政单位', '公检法机构'],
+        '休闲娱乐': ['电影院', 'KTV', '剧院', '洗浴按摩', '休闲广场'],
+        '运动健身': ['体育场馆', '健身中心'],
+        '旅游景点': ['公园', '动物园', '植物园', '博物馆', '文物古迹', '风景区']
     },
 
     AMAP_API_ENDPOINTS: {
@@ -50,11 +55,8 @@ Object.entries(CONFIG.POI_CATEGORIES).forEach(([category, codes]) => {
 const POI_CATEGORY_MAPPING = CONFIG.POI_CATEGORIES;
 const POI_CODE_TO_CATEGORY = CONFIG.POI_CODE_TO_CATEGORY;
 
-const AMAP_KEY = CONFIG.AMAP_KEY;
-const AMAP_WEB_SERVICE_KEY = CONFIG.AMAP_WEB_SERVICE_KEY;
-const SECURITY_CODE = CONFIG.SECURITY_CODE;
+const BAIDU_AK = CONFIG.BAIDU_AK;
 const DEFAULT_RADIUS = CONFIG.DEFAULT_RADIUS;
 const MAX_RADIUS = CONFIG.MAX_RADIUS;
 const MAP_ZOOM = CONFIG.MAP_ZOOM;
-const AMAP_API_ENDPOINTS = CONFIG.AMAP_API_ENDPOINTS;
 const APP_CONFIG = CONFIG.APP;

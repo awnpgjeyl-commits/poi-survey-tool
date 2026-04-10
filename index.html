@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="css/responsive.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.0/axios.min.js"></script>
+    <script type="text/javascript" src="https://api.map.baidu.com/api?v=3.0&ak=Sr3FSlQEfJVlMl6zupdMRCvXmFGc9xR2"></script>
 </head>
 <body>
     <div class="app-container">
@@ -128,11 +129,20 @@
                 <button class="modal-close" id="close-modal">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="poi-search-box">
-                    <input type="text" id="poi-search-input" placeholder="搜索POI分类...">
+                <div class="poi-category-select">
+                    <label>一级分类：</label>
+                    <select id="poi-category-select" class="category-dropdown">
+                        <option value="">请选择一级分类</option>
+                    </select>
                 </div>
-                <div class="poi-results" id="poi-results">
-                    <p class="poi-hint">请输入关键词搜索POI分类</p>
+                <div class="poi-search-box">
+                    <input type="text" id="poi-search-input" placeholder="搜索二级分类...">
+                </div>
+                <div class="poi-subcategory-list" id="poi-subcategory-list">
+                    <p class="poi-hint">请先选择一级分类</p>
+                </div>
+                <div class="poi-actions">
+                    <button id="poi-confirm-btn" class="btn-primary">确定</button>
                 </div>
             </div>
         </div>
@@ -143,16 +153,8 @@
         <p>搜索中...</p>
     </div>
 
+
     <script src="js/config.js"></script>
-    <script>
-        window._AMapSecurityConfig = {
-            securityJsCode: CONFIG.SECURITY_CODE
-        };
-        var amapKey = CONFIG.AMAP_KEY;
-        var amapScript = document.createElement('script');
-        amapScript.src = 'https://webapi.amap.com/maps?v=2.0&key=' + amapKey;
-        document.head.appendChild(amapScript);
-    </script>
     <script src="js/utils.js"></script>
     <script src="js/map-manager.js"></script>
     <script src="js/search-manager.js"></script>

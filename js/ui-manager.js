@@ -92,6 +92,13 @@ class UIManager {
     }
 
     getSelectedCategories() {
+        // 百度地图模式：直接从 customPoiInput 获取分类名称（逗号分隔）
+        const customPoiCodes = this.getCustomPOICodes();
+        if (customPoiCodes && customPoiCodes.trim()) {
+            return customPoiCodes.split(',').map(s => s.trim()).filter(s => s);
+        }
+        
+        // 兼容模式：从 checkbox 获取
         const selected = [];
         this.elements.categoryCheckboxes.forEach(checkbox => {
             if (checkbox.checked) {
