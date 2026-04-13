@@ -120,6 +120,14 @@ class MapManager {
     }
 
     async searchAddress(address) {
+        // 确保 geocoder 已初始化
+        if (!this.geocoder) {
+            if (typeof BMap === 'undefined') {
+                throw new Error('百度地图 API 未加载');
+            }
+            this.geocoder = new BMap.Geocoder();
+        }
+
         return new Promise((resolve, reject) => {
             this.geocoder.getPoint(address, (point) => {
                 if (point) {
