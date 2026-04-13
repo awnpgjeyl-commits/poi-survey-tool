@@ -41,29 +41,14 @@ function parseCustomPOICodes(input) {
     return categories;
 }
 
-
-}
-
-function getCategoryByPOICode(code) {
-    return POI_CODE_TO_CATEGORY[code] || '其他';
-}
-
 function deduplicatePOIs(pois) {
     const seen = new Map();
     pois.forEach(poi => {
-        if (!seen.has(poi.id)) {
-            seen.set(poi.id, poi);
+        if (!seen.has(poi.name + poi.address)) {
+            seen.set(poi.name + poi.address, poi);
         }
     });
     return Array.from(seen.values());
-}
-
-function sortPOIsByDistance(pois, ascending = true) {
-    return [...pois].sort((a, b) => {
-        const distA = parseFloat(a.distance) || 0;
-        const distB = parseFloat(b.distance) || 0;
-        return ascending ? distA - distB : distB - distA;
-    });
 }
 
 function formatDistance(meters) {
@@ -91,20 +76,19 @@ function validateRadius(radius) {
     return !isNaN(num) && num >= CONFIG.MIN_RADIUS && num <= CONFIG.MAX_RADIUS;
 }
 
-function buildPOITypesString(selectedCategories, customCodes = []) {
-    const types = [];
-
-    selectedCategories.forEach(category => {
-        const codes = CONFIG.POI_CATEGORIES[category];
-        if (codes) {
-            types.push(...codes);
-        }
-    });
-
-    const parsedCustom = parseCustomPOICodes(customCodes);
-    types.push(...parsedCustom);
-
-    return [...new Set(types)].join('|');
+function buildPOITypesString(selectedCategories, customCodes = '') {
+    // 百度地图模式：直接使用分类名称
+    if (selectedCategories && selectedCategories.length > 0) {
+        return selectedCategories.join('|');
+    }
+    
+    // 从自定义输入获取
+    const custom = parseCustomPOICodes(customCodes);
+    if (custom.length > 0) {
+        return custom.join('|');
+    }
+    
+    return '';
 }
 
 function createErrorMessage(error) {

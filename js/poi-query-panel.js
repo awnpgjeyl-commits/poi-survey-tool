@@ -42,14 +42,14 @@ class POIQueryPanel {
             }
         });
 
-        // 搜索输入
-        const debouncedSearch = debounce((keyword) => {
-            this.filterSubCategories(keyword);
-        }, 300);
-
+        // 搜索输入 - 使用防抖
+        let searchTimeout;
         this.elements.searchInput.addEventListener('input', (e) => {
-            const keyword = e.target.value.trim();
-            debouncedSearch(keyword);
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                const keyword = e.target.value.trim();
+                this.filterSubCategories(keyword);
+            }, 300);
         });
 
         // 确认按钮
